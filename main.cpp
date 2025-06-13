@@ -10,17 +10,7 @@
 #include <sys/stat.h>
 #include <opencv2/opencv.hpp> //OpenCV関連ヘッダ
 
-// シリアルポート用
-#define DEV_NAME "/dev/cu.usbserial-5156D11BAC" // ※←ここは資料の「M5Stickが接続されたシリアルポートの確認方法」を参考にして各自変更する
-#define BAUD_RATE B115200                       // 通信速度
-#define BUFF_SIZE 4096
 
-#define ITEMNUM 50
-#define ITEMTYPENUM 5
-#define AUDIENCENUM 600
-#define PERSONTYPENUM 13
-#define SCRTYPENUM 11
-#define NMBRTYPENUM 3
 
 // 関数名の宣言　　　（voidは数値を出さずCGの場合映像を出す）
 void display0();
@@ -46,7 +36,7 @@ void gameReset();
 
 // グローバル変数の宣言
 double eDegY = 170.0, eDegX = 5.0, eDist = 15000.0; // 視点の水平角，垂直角，距離
-int mX, mY;                                         // マウスクリック位置格納用
+int mButton, mState, mX, mY;  // マウス系の変数
 double fr = 60.0;                                   // フレームレート
 int winID[2];                                       // ウィンドウID
 int winW[2], winH[2];                               // ウィンドウサイズ
@@ -431,28 +421,24 @@ void mouse(int button, int state, int x, int y)
         mX = x;
         mY = y;
     }
+
+    mX = x; mY = y; mButton = button; mState = state;
 }
 
 // マウスドラッグコールバック
 void motion(int x, int y)
 {
-    // マウスのx方向の移動(mX-x)：水平角の変化
-    eDegY = eDegY + (mX - x) * 0.5;
-    if (eDegY > 360)
-        eDegY -= 360;
-    if (eDegY < -0)
-        eDegY += 360;
-
-    // マウスのy方向の移動(y-mY)：垂直角の変化
-    eDegX = eDegX + (y - mY) * 0.5;
-    if (eDegX > 80)
-        eDegX = 80;
-    if (eDegX < -80)
-        eDegX = -80;
-
-    // 現在のマウス座標を(mX, mY)に格納
-    mX = x;
-    mY = y;
+    if(mButton == GLUT_LEFT_BUTTON){
+        eDegY += (mX - x)*0.5;
+        eDegX += (y - mY)*0.5;
+        //マウス座標をグローバル変数に保存
+        mX = x; mY = y;
+    }
+    if(mButton == GLUT_RIGHT_BUTTON){
+        eDist += (y - mY)*0.5;
+        //マウス座標をグローバル変数に保存
+        mX = x; mY = y;
+    }
 }
 
 // キーボードコールバック
