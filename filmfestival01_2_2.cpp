@@ -11,6 +11,13 @@
 #include <opencv2/opencv.hpp> //OpenCV関連ヘッダ
 #include <AL/alut.h>          //OpenAL
 
+#define ITEMNUM 50
+#define ITEMTYPENUM 5
+#define AUDIENCENUM 600
+#define PERSONTYPENUM 13
+#define SCRTYPENUM 11
+#define NMBRTYPENUM 3
+
 // 関数名の宣言　　　（voidは数値を出さずCGの場合映像を出す）
 void display0();
 void display1();
@@ -56,15 +63,7 @@ int scrType[SCRTYPENUM];
 double theta = 0.0;
 int itemScore[] = {-10, 20, 10, -50, 50}; // 各アイテムの得点
 int gameMode = 0;                         // ゴール到着フラグ
-// シリアル通信関係
-int fd;                    // シリアルポート
-char bufferAll[BUFF_SIZE]; // 蓄積バッファデータ
-int bufferPoint = 0;       // 蓄積バッファデータサイズ
-double val[6];             // 受信データ
-double hosei = 0.0;
-double hoseiSum;
-int hoseiCnt;
-int hoseiFlg = 0;
+
 double theta2 = 0.0;
 double theta1 = 0.0;
 double thetaLookUp = 0.0;
@@ -92,7 +91,6 @@ tm *local;
 // main関数
 int main(int argc, char *argv[])
 {
-    initSerial(); // シリアルポート初期化
 
     srand((unsigned)time(NULL));
 
@@ -421,7 +419,7 @@ void scene()
 }
 
 // タイマーコールバック
-void timer(int val1)
+void timer(int val)
 {
     system("clear");
 
@@ -431,7 +429,6 @@ void timer(int val1)
     glutSetWindow(winID[0]);
     glutTimerFunc(1000 / fr, timer, 0); // タイマーコールバックの再指定
 
-    getSerialData(); // ※加速度：val[0],val[1],val[2]，角速度val[3], val[4], val[5]を入手
     glutPostRedisplay();
 
     glutSetWindow(winID[1]);
@@ -445,27 +442,7 @@ void timer(int val1)
     long tempTimeSec = tempTimeVal.tv_sec * 10000 + tempTimeVal.tv_usec / 100;
     long intervalSec = tempTimeSec - tempTimeSec1;
     tempTimeSec1 = tempTimeSec;
-    printf("(%f, %f, %f) (%f, %f, %f)\n", val[0], val[1], val[2], val[3], val[4], val[5] - hosei);
     printf("%ld\n", intervalSec);
-    if (hoseiFlg == 1)
-    {
-        hoseiSum += val[5];
-        hoseiCnt += 1;
-
-        if (hoseiCnt == 300)
-        {
-            hosei = hoseiSum / 300;
-            hoseiSum = 0;
-            hoseiCnt = 0;
-            hoseiFlg = 0;
-            // printf("hosei = %f\n", hosei);
-        }
-    }
-    // theta = theta+((val[5]-hosei)/fr);
-    theta = theta + (val[5] - hosei) * intervalSec / 10000.0;
-    theta2 += 0.1;
-    if (theta2 > 2.0 * M_PI)
-        theta2 -= 2.0 * M_PI;
 
     //----------ここに毎フレーム実施する内容を記述----------
     theta1 = theta * 2;
@@ -1177,13 +1154,6 @@ void keyboard(unsigned char key, int x, int y)
         theta -= 10.0;
         if (theta < -80)
             theta = -80;
-        break;
-
-    case 'h':
-        // hosei = val[5];
-        hoseiFlg = 1;
-        hoseiCnt = 0;
-        hoseiSum = 0;
         break;
 
     case 'r':
