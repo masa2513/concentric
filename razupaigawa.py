@@ -8,7 +8,7 @@ from signal import pause
 # 設定値
 BUTTON_PIN = 2,3,4,17  # ボタンが接続されているGPIOピン番号
 MACBOOK_IP = "??????????"  # MacBookのIPアドレス
-MACBOOK_PORT = 8888  # MacBookのサーバーポート番号
+MACBOOK_PORT = 8080  # MacBookのサーバーポート番号
 DEBOUNCE_TIME = 0.2  # ボタンのチャタリング防止時間（秒）
 
 class ButtonSender:
